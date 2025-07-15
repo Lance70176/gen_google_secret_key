@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Authenticator QR Code 生成器</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Google Authenticator QR Code 生成器</h1>
+        
+        <div class="form-section">
+            <div class="input-group">
+                <label for="issuer">發行者 (Issuer):</label>
+                <input type="text" id="issuer" placeholder="例如: Service" value="Service">
+            </div>
+            
+            <div class="input-group">
+                <label for="username">用戶名 (Username):</label>
+                <input type="text" id="username" placeholder="例如: admin@example.com">
+            </div>
+            
+            <div class="input-group">
+                <label for="secret">Secret Key:</label>
+                <div class="secret-input">
+                    <input type="text" id="secret" placeholder="自動生成或手動輸入" readonly>
+                    <button id="generateSecret" class="btn-generate">生成新 Secret</button>
+                </div>
+            </div>
+            
+            <button id="generateQR" class="btn-primary">生成 QR Code</button>
+        </div>
+        
+        <div class="result-section">
+            <div class="qr-container">
+                <h3>QR Code:</h3>
+                <div id="qrcode"></div>
+            </div>
+            
+            <div class="info-container">
+                <h3>詳細資訊:</h3>
+                <div class="info-item">
+                    <label>Secret Key:</label>
+                    <div class="copyable" id="secretDisplay">-</div>
+                </div>
+                <div class="info-item">
+                    <label>TOTP URL:</label>
+                    <div class="copyable" id="totpUrl">-</div>
+                </div>
+                <div class="info-item">
+                    <label>使用說明:</label>
+                    <div class="instructions">
+                        <p>1. 打開 Google Authenticator App</p>
+                        <p>2. 點擊 "+" 添加帳號</p>
+                        <p>3. 選擇 "掃描 QR 碼"</p>
+                        <p>4. 掃描上方的 QR Code</p>
+                        <p>5. 或手動輸入 Secret Key</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息 -->
+    <div id="toast" class="toast"></div>
+
+    <!-- JavaScript 庫和腳本 -->
+    <script src="js/qrcode.min.js"></script>
+    <script src="js/base32.js"></script>
+    <script src="js/totp-generator.js"></script>
+</body>
+</html> 

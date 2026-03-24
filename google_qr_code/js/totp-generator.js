@@ -39,6 +39,13 @@ class TOTPGenerator {
             }
         });
 
+        document.getElementById('qrImageUrl').addEventListener('click', () => {
+            const url = document.getElementById('qrImageUrl').textContent;
+            if (url && url !== '-') {
+                this.copyToClipboard(url, 'QR Code Image URL');
+            }
+        });
+
         // 绑定输入框事件
         document.getElementById('secret').addEventListener('input', (e) => {
             this.currentSecret = e.target.value;
@@ -116,7 +123,10 @@ class TOTPGenerator {
             
             // 生成 QR Code
             this.createQRCode(totpUrl);
-            
+
+            // 顯示 QR Code 圖片 URL
+            this.updateQRImageUrl();
+
             this.showToast('QR Code 生成成功', 'success');
             
         } catch (error) {
@@ -127,6 +137,22 @@ class TOTPGenerator {
 
     updateTOTPUrlDisplay(url) {
         document.getElementById('totpUrl').textContent = url;
+    }
+
+    updateQRImageUrl() {
+        setTimeout(() => {
+            const qrContainer = document.getElementById('qrcode');
+            const canvas = qrContainer.querySelector('canvas');
+            const img = qrContainer.querySelector('img');
+            const qrImageUrlEl = document.getElementById('qrImageUrl');
+            if (canvas) {
+                qrImageUrlEl.textContent = canvas.toDataURL('image/png');
+            } else if (img && img.src) {
+                qrImageUrlEl.textContent = img.src;
+            } else {
+                qrImageUrlEl.textContent = '-';
+            }
+        }, 100);
     }
 
     createQRCode(text) {

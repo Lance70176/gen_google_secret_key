@@ -125,7 +125,8 @@ class TOTPGenerator {
             this.createQRCode(totpUrl);
 
             // 顯示 QR Code 圖片 URL
-            this.updateQRImageUrl();
+            const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(totpUrl)}&format=png&ecc=M`;
+            document.getElementById('qrImageUrl').textContent = qrImageUrl;
 
             this.showToast('QR Code 生成成功', 'success');
             
@@ -137,22 +138,6 @@ class TOTPGenerator {
 
     updateTOTPUrlDisplay(url) {
         document.getElementById('totpUrl').textContent = url;
-    }
-
-    updateQRImageUrl() {
-        setTimeout(() => {
-            const qrContainer = document.getElementById('qrcode');
-            const canvas = qrContainer.querySelector('canvas');
-            const img = qrContainer.querySelector('img');
-            const qrImageUrlEl = document.getElementById('qrImageUrl');
-            if (canvas) {
-                qrImageUrlEl.textContent = canvas.toDataURL('image/png');
-            } else if (img && img.src) {
-                qrImageUrlEl.textContent = img.src;
-            } else {
-                qrImageUrlEl.textContent = '-';
-            }
-        }, 100);
     }
 
     createQRCode(text) {

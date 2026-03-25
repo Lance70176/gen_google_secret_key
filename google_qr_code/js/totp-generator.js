@@ -124,9 +124,21 @@ class TOTPGenerator {
             // 生成 QR Code
             this.createQRCode(totpUrl);
 
-            // 顯示 QR Code 圖片 URL
-            const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(totpUrl)}&format=png&ecc=M`;
-            document.getElementById('qrImageUrl').textContent = qrImageUrl;
+            // 顯示 QR Code 圖片 URL（延遲等待 QR Code 渲染完成）
+            setTimeout(() => {
+                try {
+                    const qrContainer = document.getElementById('qrcode');
+                    const canvas = qrContainer.querySelector('canvas');
+                    const img = qrContainer.querySelector('img');
+                    if (img && img.src) {
+                        document.getElementById('qrImageUrl').textContent = img.src;
+                    } else if (canvas) {
+                        document.getElementById('qrImageUrl').textContent = canvas.toDataURL('image/png');
+                    }
+                } catch (e) {
+                    document.getElementById('qrImageUrl').textContent = '-';
+                }
+            }, 500);
 
             this.showToast('QR Code 生成成功', 'success');
             
@@ -145,17 +157,19 @@ class TOTPGenerator {
         qrContainer.innerHTML = '';
         qrContainer.className = '';
 
-        const img = document.createElement('img');
-        img.src = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(text)}&format=png&ecc=M`;
-        img.width = 256;
-        img.height = 256;
-        img.alt = 'QR Code';
-        img.style.display = 'block';
-        img.onerror = () => {
-            console.error('QR Code image failed to load');
+        try {
+            this.qrCodeInstance = new QRCode(qrContainer, {
+                text: text,
+                width: 256,
+                height: 256,
+                colorDark: '#000000',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        } catch (error) {
+            console.error('QR Code 生成失败:', error);
             this.showQRError();
-        };
-        qrContainer.appendChild(img);
+        }
     }
 
     showQRError() {

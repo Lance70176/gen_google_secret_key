@@ -145,19 +145,17 @@ class TOTPGenerator {
         qrContainer.innerHTML = '';
         qrContainer.className = '';
 
-        try {
-            this.qrCodeInstance = new QRCode(qrContainer, {
-                text: text,
-                width: 256,
-                height: 256,
-                colorDark: '#000000',
-                colorLight: '#ffffff',
-                correctLevel: QRCode.CorrectLevel.M
-            });
-        } catch (error) {
-            console.error('QR Code 生成失败:', error);
+        const img = document.createElement('img');
+        img.src = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(text)}&format=png&ecc=M`;
+        img.width = 256;
+        img.height = 256;
+        img.alt = 'QR Code';
+        img.style.display = 'block';
+        img.onerror = () => {
+            console.error('QR Code image failed to load');
             this.showQRError();
-        }
+        };
+        qrContainer.appendChild(img);
     }
 
     showQRError() {

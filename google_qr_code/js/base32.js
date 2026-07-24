@@ -176,6 +176,48 @@ function cleanSecret(secret) {
     return secret.replace(/[=\s]/g, '').toUpperCase();
 }
 
+/**
+ * 计算当前 TOTP 验证码（HMAC-SHA1，使用 Web Crypto API）
+ * @param {string} secret Base32 编码的 Secret Key
+ * @param {number} period 时间间隔（默认30秒）
+ * @param {number} digits 验证码位数（默认6）
+ * @returns {Promise<string>} 验证码
+ */
+async function generateTOTPCode(secret, period = 30, digits = 6) {
+    const keyBytes = base32.decode(cleanSecret(secret));
+
+    // 将当前时间步转换为 8 字节大端序计数器
+    let counter = Math.floor(Date.now() / 1000 / period);
+    const counterBytes = new Uint8Array(8);
+    for (let i = 7; i >= 0; i--) {
+        counterBytes[i] = counter & 0xff;
+        counter = Math.floor(counter / 256);
+    }
+
+    const key = await crypto.subtle.importKey(
+        'raw', keyBytes, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']
+    );
+    const hmac = new Uint8Array(await crypto.subtle.sign('HMAC', key, counterBytes));
+
+    // RFC 4226 动态截断
+    const offset = hmac[hmac.length - 1] & 0x0f;
+    const binCode = ((hmac[offset] & 0x7f) << 24) |
+        (hmac[offset + 1] << 16) |
+        (hmac[offset + 2] << 8) |
+        hmac[offset + 3];
+
+    return (binCode % Math.pow(10, digits)).toString().padStart(digits, '0');
+}
+
+/**
+ * 获取当前时间步内剩余秒数
+ * @param {number} period 时间间隔（默认30秒）
+ * @returns {number} 剩余秒数
+ */
+function getTOTPRemainingSeconds(period = 30) {
+    return period - (Math.floor(Date.now() / 1000) % period);
+}
+
 // 导出函数
 window.Base32 = Base32;
 window.base32 = base32;
@@ -183,4 +225,6 @@ window.generateSecureRandomBytes = generateSecureRandomBytes;
 window.generateTOTPSecret = generateTOTPSecret;
 window.buildTOTPUrl = buildTOTPUrl;
 window.validateSecret = validateSecret;
-window.cleanSecret = cleanSecret; 
+window.cleanSecret = cleanSecret;
+window.generateTOTPCode = generateTOTPCode;
+window.getTOTPRemainingSeconds = getTOTPRemainingSeconds; 

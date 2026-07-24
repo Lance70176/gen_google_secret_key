@@ -88,6 +88,77 @@ h1 {
     background: #218838;
 }
 
+.btn-view-code {
+    padding: 12px 20px;
+    background: #17a2b8;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.3s ease;
+    white-space: nowrap;
+}
+
+.btn-view-code:hover {
+    background: #138496;
+}
+
+.live-code-panel {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-top: 12px;
+    padding: 16px 20px;
+    background: white;
+    border: 2px solid #667eea;
+    border-radius: 8px;
+}
+
+.live-code-value {
+    font-family: 'Courier New', monospace;
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: #333;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.live-code-value:hover {
+    color: #667eea;
+}
+
+.live-code-meta {
+    flex: 1;
+    min-width: 120px;
+}
+
+.live-code-timer {
+    font-size: 14px;
+    color: #6c757d;
+    margin-bottom: 6px;
+}
+
+.live-code-bar {
+    height: 6px;
+    background: #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.live-code-bar-fill {
+    height: 100%;
+    width: 100%;
+    background: #28a745;
+    border-radius: 3px;
+    transition: width 1s linear, background 0.3s ease;
+}
+
+.live-code-bar-fill.warning {
+    background: #dc3545;
+}
+
 .btn-primary {
     width: 100%;
     padding: 15px;
@@ -256,6 +327,19 @@ h1 {
     .btn-generate {
         width: 100%;
         margin-top: 10px;
+    }
+
+    .btn-view-code {
+        width: 100%;
+    }
+
+    .live-code-panel {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .live-code-meta {
+        width: 100%;
     }
 }
 

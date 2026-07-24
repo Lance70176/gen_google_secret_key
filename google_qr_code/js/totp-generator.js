@@ -7,6 +7,8 @@ class TOTPGenerator {
     constructor() {
         this.qrCodeInstance = null;
         this.currentSecret = '';
+        this.liveCodeTimer = null;
+        this.liveCodeStep = null;
         this.init();
     }
 
@@ -25,6 +27,19 @@ class TOTPGenerator {
         // 绑定生成 QR Code 按钮
         document.getElementById('generateQR').addEventListener('click', () => {
             this.generateQRCode();
+        });
+
+        // 绑定查看即时验证码按钮
+        document.getElementById('viewLiveCode').addEventListener('click', () => {
+            this.toggleLiveCode();
+        });
+
+        // 点击验证码复制
+        document.getElementById('liveCode').addEventListener('click', () => {
+            const code = document.getElementById('liveCode').textContent.replace(/\s/g, '');
+            if (/^\d+$/.test(code)) {
+                this.copyToClipboard(code, '驗證碼');
+            }
         });
 
         // 绑定复制功能
@@ -50,6 +65,7 @@ class TOTPGenerator {
         document.getElementById('secret').addEventListener('input', (e) => {
             this.currentSecret = e.target.value;
             this.updateSecretDisplay();
+            this.refreshLiveCodeIfVisible();
         });
 
         // 绑定回车键快捷生成
@@ -71,6 +87,7 @@ class TOTPGenerator {
             this.currentSecret = generateTOTPSecret(20);
             document.getElementById('secret').value = this.currentSecret;
             this.updateSecretDisplay();
+            this.refreshLiveCodeIfVisible();
             this.showToast('新的 Secret Key 已生成', 'success');
         } catch (error) {
             console.error('生成 Secret 失败:', error);
@@ -81,6 +98,80 @@ class TOTPGenerator {
     updateSecretDisplay() {
         const secretDisplay = document.getElementById('secretDisplay');
         secretDisplay.textContent = this.currentSecret || '-';
+    }
+
+    // ===== 即时验证码 =====
+
+    toggleLiveCode() {
+        const panel = document.getElementById('liveCodePanel');
+        if (panel.style.display === 'none') {
+            if (!validateSecret(this.currentSecret.trim())) {
+                this.showToast('請先輸入有效的 Secret Key', 'error');
+                return;
+            }
+            panel.style.display = 'flex';
+            document.getElementById('viewLiveCode').textContent = '隱藏驗證碼';
+            this.startLiveCode();
+        } else {
+            panel.style.display = 'none';
+            document.getElementById('viewLiveCode').textContent = '查看即時驗證碼';
+            this.stopLiveCode();
+        }
+    }
+
+    startLiveCode() {
+        this.stopLiveCode();
+        this.liveCodeStep = null;
+        this.tickLiveCode();
+        this.liveCodeTimer = setInterval(() => this.tickLiveCode(), 1000);
+    }
+
+    stopLiveCode() {
+        if (this.liveCodeTimer) {
+            clearInterval(this.liveCodeTimer);
+            this.liveCodeTimer = null;
+        }
+    }
+
+    async tickLiveCode() {
+        const period = 30;
+        const remaining = getTOTPRemainingSeconds(period);
+        document.getElementById('liveCodeCountdown').textContent = remaining;
+
+        const barFill = document.getElementById('liveCodeBarFill');
+        barFill.style.width = `${(remaining / period) * 100}%`;
+        barFill.classList.toggle('warning', remaining <= 5);
+
+        // 只在跨入新时间步时重新计算验证码
+        const step = Math.floor(Date.now() / 1000 / period);
+        if (step !== this.liveCodeStep) {
+            this.liveCodeStep = step;
+            await this.renderLiveCode();
+        }
+    }
+
+    async renderLiveCode() {
+        const codeEl = document.getElementById('liveCode');
+        const secret = this.currentSecret.trim();
+
+        if (!validateSecret(secret)) {
+            codeEl.textContent = '------';
+            return;
+        }
+
+        try {
+            const code = await generateTOTPCode(secret);
+            codeEl.textContent = code.replace(/^(\d{3})(\d{3})$/, '$1 $2');
+        } catch (error) {
+            console.error('计算验证码失败:', error);
+            codeEl.textContent = '------';
+        }
+    }
+
+    refreshLiveCodeIfVisible() {
+        if (document.getElementById('liveCodePanel').style.display !== 'none') {
+            this.renderLiveCode();
+        }
     }
 
     generateQRCode() {
@@ -287,6 +378,9 @@ class TOTPGenerator {
         
         this.currentSecret = '';
         this.qrCodeInstance = null;
+        this.stopLiveCode();
+        document.getElementById('liveCodePanel').style.display = 'none';
+        document.getElementById('viewLiveCode').textContent = '查看即時驗證碼';
         this.initializeQRContainer();
     }
 }

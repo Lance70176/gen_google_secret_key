@@ -26,6 +26,14 @@
                 <div class="secret-input">
                     <input type="text" id="secret" placeholder="自動生成或手動輸入">
                     <button id="generateSecret" class="btn-generate">生成新 Secret</button>
+                    <button id="viewLiveCode" class="btn-view-code">查看即時驗證碼</button>
+                </div>
+                <div id="liveCodePanel" class="live-code-panel" style="display: none;">
+                    <div id="liveCode" class="live-code-value" title="點擊複製">------</div>
+                    <div class="live-code-meta">
+                        <div class="live-code-timer"><span id="liveCodeCountdown">--</span> 秒後更新</div>
+                        <div class="live-code-bar"><div id="liveCodeBarFill" class="live-code-bar-fill"></div></div>
+                    </div>
                 </div>
             </div>
             

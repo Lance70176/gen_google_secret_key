@@ -44,6 +44,18 @@ class TOTPGenerator {
         return true;
     }
 
+    // 将当前 Secret 同步到网址 ?secret= 参数，方便直接复制网址
+    syncSecretToURL() {
+        const secret = this.currentSecret.trim();
+        if (!secret) {
+            return;
+        }
+        const url = new URL(window.location.href);
+        url.searchParams.set('secret', secret);
+        url.searchParams.delete('key');
+        history.replaceState(null, '', url);
+    }
+
     bindEvents() {
         // 绑定生成新 Secret 按钮
         document.getElementById('generateSecret').addEventListener('click', () => {
@@ -120,6 +132,7 @@ class TOTPGenerator {
             document.getElementById('secret').value = this.currentSecret;
             this.updateSecretDisplay();
             this.refreshLiveCodeIfVisible();
+            this.syncSecretToURL();
             this.showToast('新的 Secret Key 已生成', 'success');
         } catch (error) {
             console.error('生成 Secret 失败:', error);
@@ -150,6 +163,7 @@ class TOTPGenerator {
     openLiveCode() {
         document.getElementById('liveCodePanel').style.display = 'flex';
         document.getElementById('viewLiveCode').textContent = '隱藏驗證碼';
+        this.syncSecretToURL();
         this.startLiveCode();
     }
 

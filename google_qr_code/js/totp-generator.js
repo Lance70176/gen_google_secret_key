@@ -14,8 +14,34 @@ class TOTPGenerator {
 
     init() {
         this.bindEvents();
-        this.generateNewSecret();
+        if (!this.applySecretFromURL()) {
+            this.generateNewSecret();
+        }
         this.initializeQRContainer();
+    }
+
+    // 从 URL 参数带入 Secret Key（?secret=xxx 或 ?key=xxx），有带入时返回 true
+    applySecretFromURL() {
+        const params = new URLSearchParams(window.location.search);
+        const raw = params.get('secret') || params.get('key');
+        if (!raw) {
+            return false;
+        }
+
+        const secret = raw.replace(/\s+/g, '');
+        if (!secret) {
+            return false;
+        }
+
+        this.currentSecret = secret;
+        document.getElementById('secret').value = secret;
+        this.updateSecretDisplay();
+
+        // Secret 有效才自动打开即时验证码，无效则跳过
+        if (validateSecret(secret)) {
+            this.openLiveCode();
+        }
+        return true;
     }
 
     bindEvents() {
@@ -61,9 +87,15 @@ class TOTPGenerator {
             }
         });
 
-        // 绑定输入框事件
+        // 绑定输入框事件（自动过滤空白）
         document.getElementById('secret').addEventListener('input', (e) => {
-            this.currentSecret = e.target.value;
+            const cleaned = e.target.value.replace(/\s+/g, '');
+            if (cleaned !== e.target.value) {
+                const pos = Math.max(0, (e.target.selectionStart || cleaned.length) - (e.target.value.length - cleaned.length));
+                e.target.value = cleaned;
+                e.target.setSelectionRange(pos, pos);
+            }
+            this.currentSecret = cleaned;
             this.updateSecretDisplay();
             this.refreshLiveCodeIfVisible();
         });
@@ -109,14 +141,22 @@ class TOTPGenerator {
                 this.showToast('請先輸入有效的 Secret Key', 'error');
                 return;
             }
-            panel.style.display = 'flex';
-            document.getElementById('viewLiveCode').textContent = '隱藏驗證碼';
-            this.startLiveCode();
+            this.openLiveCode();
         } else {
-            panel.style.display = 'none';
-            document.getElementById('viewLiveCode').textContent = '查看即時驗證碼';
-            this.stopLiveCode();
+            this.closeLiveCode();
         }
+    }
+
+    openLiveCode() {
+        document.getElementById('liveCodePanel').style.display = 'flex';
+        document.getElementById('viewLiveCode').textContent = '隱藏驗證碼';
+        this.startLiveCode();
+    }
+
+    closeLiveCode() {
+        document.getElementById('liveCodePanel').style.display = 'none';
+        document.getElementById('viewLiveCode').textContent = '查看即時驗證碼';
+        this.stopLiveCode();
     }
 
     startLiveCode() {
@@ -378,9 +418,7 @@ class TOTPGenerator {
         
         this.currentSecret = '';
         this.qrCodeInstance = null;
-        this.stopLiveCode();
-        document.getElementById('liveCodePanel').style.display = 'none';
-        document.getElementById('viewLiveCode').textContent = '查看即時驗證碼';
+        this.closeLiveCode();
         this.initializeQRContainer();
     }
 }
